@@ -17,6 +17,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+
 public class MainScreenActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -24,6 +26,8 @@ public class MainScreenActivity extends AppCompatActivity
 
     private ManageStoreFragment manageStoreFragment;
     private ManageItemFragment manageItemFragment;
+
+    private FloatingActionButton qrButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +60,16 @@ public class MainScreenActivity extends AppCompatActivity
 
         userimg =(ImageView)findViewById(R.id.UserImage);
 
-
+        qrButton = (FloatingActionButton)findViewById(R.id.fab);
+        qrButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                IntentIntegrator integrator = new IntentIntegrator(MainScreenActivity.this);
+                integrator.setCaptureActivity( qrReader.class );
+                integrator.setOrientationLocked(false);
+                integrator.initiateScan();
+            }
+        });
     }
 
     @Override

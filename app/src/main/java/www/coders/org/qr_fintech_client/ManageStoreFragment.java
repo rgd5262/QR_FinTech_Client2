@@ -59,6 +59,7 @@ public class ManageStoreFragment extends Fragment {
         }
     }
 
+    /*
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -93,5 +94,6 @@ public class ManageStoreFragment extends Fragment {
 
         return view;
     }
-
+    */
 }
+
