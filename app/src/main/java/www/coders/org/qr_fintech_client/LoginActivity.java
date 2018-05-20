@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -44,6 +45,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG_MESSAGE = "msg";
 
     public final static String TAG_ID = "id";
+    public final static String TAG_PASSWORD = "pw";
     public final static String TAG_TYPE = "type"; // 개인 0, 상인 1
     //------------------------------
 
@@ -126,32 +128,6 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    /// 테스트 코드
-    private void checkLogin(final String id, final String password)
-    {
-        if(id.compareTo("a") == 0 && password.compareTo("a") ==0){
-            Toast.makeText(getApplicationContext(), id+"님 환영합니다.", Toast.LENGTH_LONG).show();
-
-            // 세션 값, id, 안드로이드에 data 저장
-            SharedPreferences.Editor editor = sharedpreferences.edit();
-            editor.putBoolean(session_status, true);
-            editor.putString(TAG_ID, id);
-            //editor.putString(TAG_TYPE, type);
-            editor.commit();
-
-            // 로그인 후 화면 열기 id  반환
-            Intent intent = new Intent(LoginActivity.this, MainScreenActivity.class);
-            intent.putExtra(TAG_ID, id);
-            //intent.putExtra(TAG_TYPE, type);
-            finish();
-            startActivity(intent);
-        }
-        else{
-            Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
-
-        }
-
-    }
     // 네트워크 연결했을때
     private void checkLogin(final String id, final String password) {
         //로딩창 띄우기
@@ -159,80 +135,56 @@ public class LoginActivity extends AppCompatActivity {
         pDialog.setCancelable(false);
         pDialog.setMessage("로그인 중 ...");
         showDialog();
+        JSONObject jObj = null;
 
-        //volley library로 network data 전송
-        StringRequest strReq = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.e(TAG, "Login Response: " + response.toString());
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.accumulate(TAG_ID, id);
+            jsonObject.accumulate(TAG_PASSWORD, password);
+
+            HttpAsyncTask httpTask = new HttpAsyncTask(jsonObject);
+            String response = httpTask.execute(url).get();
+            jObj = new JSONObject(response);
+            int success = jObj.getInt(TAG_RESULT);
+
+            if(success == 1)
+            {
+                // 세션 값, id, 안드로이드에 data 저장
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putBoolean(session_status, true);
+                editor.putString(TAG_ID, id);
+                //editor.putString(TAG_TYPE, type);
+                editor.commit();
                 hideDialog();
 
-                try {
-                    JSONObject jObj = new JSONObject(response);
-                    success = jObj.getInt(TAG_RESULT);
-
-                    // Check for error node in json
-                    if (success == 1) {
-                        String id = jObj.getString(TAG_ID);
-                        //String type = jObj.getString(TAG_TYPE);
-
-                        Log.e("Successfully Login!", jObj.toString());
-
-                        Toast.makeText(getApplicationContext(), jObj.getString(TAG_ID)+"님 환영합니다.", Toast.LENGTH_LONG).show();
-
-                        // 세션 값, id, 안드로이드에 data 저장
-                        SharedPreferences.Editor editor = sharedpreferences.edit();
-                        editor.putBoolean(session_status, true);
-                        editor.putString(TAG_ID, id);
-                        //editor.putString(TAG_TYPE, type);
-                        editor.commit();
-
-                        // 로그인 후 화면 열기 id  반환
-                        Intent intent = new Intent(LoginActivity.this, MainScreenActivity.class);
-                        intent.putExtra(TAG_ID, id);
-                        //intent.putExtra(TAG_TYPE, type);
-                        finish();
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                jObj.getString(TAG_MESSAGE), Toast.LENGTH_LONG).show();
-
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-                }
-
+                // 로그인 후 화면 열기 id  반환
+                Toast.makeText(getApplicationContext(), id + "님 환영합니다.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(LoginActivity.this, MainScreenActivity.class);
+                intent.putExtra(TAG_ID, id);
+                //intent.putExtra(TAG_TYPE, type);
+                finish();
+                startActivity(intent);
             }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "로그인 에러: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-
+            else
+            {
+                Toast.makeText(getApplicationContext(),jObj.getString(TAG_MESSAGE), Toast.LENGTH_LONG).show();
                 hideDialog();
-
             }
-        }) {
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),"로그인 에러", Toast.LENGTH_LONG).show();
+            hideDialog();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),"로그인 에러", Toast.LENGTH_LONG).show();
+            hideDialog();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),"로그인 에러", Toast.LENGTH_LONG).show();
+            hideDialog();
+        }
 
-            @Override
-            protected Map<String, String> getParams() {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("id", id);
-                params.put("pw", password);
-
-                return params;
-            }
-
-        };
-
-        // 생성한 StringRequest를 RequestQueue에 추가, 순차적으로 진행
-        AppController.getInstance().addToRequestQueue(strReq, tag_json_obj);
     }
-
 
     private void showDialog() {
         if (!pDialog.isShowing())

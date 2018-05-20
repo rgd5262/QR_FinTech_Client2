@@ -41,7 +41,6 @@
             android:theme="@style/AppTheme.NoActionBar"/>
 
         <activity android:name=".qrReader" />
-
     </application>
 
 </manifest>

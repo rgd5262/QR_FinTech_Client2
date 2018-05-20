@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -17,18 +18,11 @@
             android:orientation="vertical">
 
             <ImageView
-                android:id="@+id/logo"
+                android:id="@+id/profile_image"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center"
-                android:background="@mipmap/ic_launcher" />
-
-            <View
-                android:id="@+id/View1"
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:layout_gravity="center"
-                android:background="#448AFF" />
+                app:srcCompat="@drawable/eximg" />
 
             <TextView
                 android:id="@+id/TextView2"
